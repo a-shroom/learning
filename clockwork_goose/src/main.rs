@@ -2,7 +2,7 @@ use std::env; // Access environment variables
 
 use serenity::{
     async_trait, // For asynchronous features
-    model::{channel::Message, gateway::Ready}, // 
+    model::{channel::Message, gateway::Ready}, 
     prelude::*, // Basics for serenity
 };
 
@@ -14,11 +14,12 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
+
     async fn message(&self, ctx: Context, msg: Message) {
         // In the event of a message being sent, check if it matches a command, then respond accordingly
 
         if msg.content == PING_COMMAND {
-            if let Err(why) = msg.channel_id.say(&ctx.http, PING_MESSAGE).await {
+            if let Err(why) = msg.channel_id.say(&ctx.http, &PING_MESSAGE).await {
                 println!("Error sending message: {:?}", why);
             }
         }
@@ -33,9 +34,10 @@ impl EventHandler for Handler {
 #[tokio::main]                                                                  // Denotes the main function of async program
 async fn main() {
     let token: String = env::var(D_TOKEN)          // Create token
-        .expect("Expected a token in the environemtn");
-    let intents: GatewayIntents = GatewayIntents::non_privileged();             // Unsure what intents are for
-    
+        .expect("Expected a token in the environemt");
+    let intents: GatewayIntents = GatewayIntents::non_privileged()
+        | GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::MESSAGE_CONTENT;
     let mut client: Client = Client::builder(&token, intents)      // Create a new discord client
         .event_handler(Handler)
         .await
