@@ -1,5 +1,4 @@
-use std::{io::stdin, char};
-//use std::io::stdout;
+use std::io::{stdin};
 
 fn init_words(word:&String, guess_vec:&mut Vec<char>, word_vec:&mut Vec<char>) {
     for _i in 0..word.len() {
@@ -50,6 +49,7 @@ fn resolve_guess(word_vec:&Vec<char>, guess_vec:&mut Vec<char>, guess:&mut Strin
     *guess = "".to_string();
     return false;
 }
+
 
 fn main() {
     let word:String = String::from("kitten");

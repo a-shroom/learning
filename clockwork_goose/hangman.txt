@@ -1,0 +1,2 @@
+minx
+m_nx
