@@ -15,17 +15,27 @@ use serenity::{
     }
 };
 
-use hangman::make_guess;
+use hangman::{
+    make_guess,
+    begin_game,
+    end_game,
+};
 
 const D_TOKEN: &str = "DISCORD_TOKEN";
 const FILENAME: &str = "hangman.txt";
 
 #[command]
-async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
+async fn hangman(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let path: &Path = Path::new(FILENAME);
-    let res: String = make_guess(&path, args.single::<String>().unwrap());
 
-    msg.channel_id.say(&ctx.http, res).await?;
+    let comm: String = match args.single::<String>()?.as_str() {
+        "guess" => make_guess(path, args.single::<String>()?),
+        "begin" => begin_game(path, args.single::<String>()?),
+        "end" => end_game(path),
+        _ => "Uknown command.".to_string(),
+    };
+
+    msg.channel_id.say(&ctx.http, comm).await?;
 
     Ok(())
 }
@@ -38,7 +48,7 @@ async fn honk(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[group]
-#[commands(guess, honk)]
+#[commands(hangman, honk)]
 struct General;
 
 struct Handler;

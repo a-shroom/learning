@@ -2,7 +2,48 @@ use std::io::prelude::*;
 use std::io::{self};
 use std::fs::File;
 use std::path::Path;
+use rand::Rng;
 
+const RAND_WORDS: &str = "randoms.txt";
+
+pub fn begin_game(path: &Path, word: String) -> String {
+    let mut temp: String = String::new();
+    let rand_path: &Path = Path::new(RAND_WORDS);
+
+    if word == "random".to_string() {
+        let mut rng = rand::thread_rng();
+        let x: usize = rng.gen_range(0, 10);
+        if let Ok(lines) = read_lines(rand_path) {
+            for (idx, line) in lines.enumerate() {
+                if let Ok(el) = line {
+                    if idx == x {
+                        temp = el;
+                    }
+                }
+            }
+        };
+    }
+    else {
+        temp = word;
+    };
+
+    let mut guess_string: String = String::new();
+
+    for _i in 0..temp.len() {
+        guess_string.push('-');
+    };
+
+    write_file(path, &format!("{}\n{}", temp, guess_string));
+
+    return "Started a new game.".to_string();
+}
+
+pub fn end_game(path: &Path) -> String {
+    write_file(path, &"EMTY".to_string());
+    return "Ended game.".to_string();
+}
+
+#[allow(unused_assignments)]
 pub fn make_guess(path: &Path, guess: String) -> String {
     let player_guess: Vec<char> = guess.chars().collect();
     let mut words: [String; 2] = [String::new(), String::new()];
@@ -18,10 +59,24 @@ pub fn make_guess(path: &Path, guess: String) -> String {
     let word_vec: Vec<char> = words[0].chars().collect();
     let mut guess_vec: Vec<char> = words[1].chars().collect();
 
+    if vec_to_string(&word_vec) == "EMTY".to_string() {
+        return "There is no game currently running.".to_string();
+    };
+
     if player_guess.len() > 1 {
+        let mut res: String = String::new();
+
         if player_guess == word_vec {
-            return format!("Yes, the word was {}!", vec_to_string(&player_guess));
+            res = format!("Yes, the word was {}!", &guess);
+        }
+        else if guess == "end".to_string() {
+            res = end_game(path);
+        }
+        else {
+            res = format!("No, '{}' is not the secret word.", guess);
         };
+        
+        return res;
     };
 
     let mut res: bool = false;
@@ -32,6 +87,11 @@ pub fn make_guess(path: &Path, guess: String) -> String {
             res = true;
         }
     }
+
+    if guess_vec == word_vec {
+        end_game(path);
+        return format!("Congratulations, you found the secret word - {}!", vec_to_string(&guess_vec));
+    };
 
     if res {
         let new_guess: String = format!(
@@ -51,30 +111,6 @@ where P: AsRef<Path>, {
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
-
-/*
-fn read_file(path: &Path) -> (String, String) {
-    let mut file = match File::open(&path) {
-        Err(why) => panic!("Couldn't open file: {}", why),
-        Ok(file) => file,
-    };
-
-    let mut s: String = String::new();
-
-    match file.read_to_string(&mut s) {
-        Err(why) => panic!("Couldn't read file: {}", why),
-        Ok(_) => println!("File read."),
-    }
-
-    let mut out: [String; 2] = [String::new(), String::new()];
-
-    for (idx, el) in s.split_whitespace().enumerate() {
-        out[idx] = el.to_string();
-    };
-
-    (out[0], out[1])
-}
-*/
 
 fn write_file(path: &Path, input: &String) {
     let mut file = match File::create(&path) {

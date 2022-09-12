@@ -1,2 +1,1 @@
-minx
-m_nx
+EMTY
